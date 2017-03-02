@@ -69,4 +69,37 @@ The developer user doesn't seem to have any rights, so there is some more work t
 ## Getting Spyder to run from inside of a container
 We got openCV to show windows, so we should be able to open an Spyder session from inside of the container right?! Yup!
 
+### Get spyder installed
+Run the container as root, our developer user does not want to install stuff for some reason...
+```
+apt-get update
+apt-get install -y spyder
+spyder & # start it headless
+```
+This will likely shoot out an error along the lines of:
+1. The first is caused by bad memory access, and can be fixed by adding the arg `--ipc=host` to the docker command to start the container
+```
+X Error: BadShmSeg (invalid shared segment parameter) 128
+  Extension:    130 (MIT-SHM)
+  Minor opcode: 3 (X_ShmPutImage)
+  Resource id:  0x4000014
+```
+2. The second is caused by there not actually being a user listed when you do `echo $USER`. The really hacky, but simple, way to fix this is by opening the file `/usr/lib/python2.7/dist-packages/spyderlib/utils/programs.py` and chaning line 29 to read `username = encoding.to_unicode_from_fs('developer')`. This means the name listed at the start of all new files is 'developer' now. This likely has to be done as root.
+```
+Traceback (most recent call last):
+  File "/usr/bin/spyder", line 2, in <module>
+    from spyderlib import start_app
+  File "/usr/lib/python2.7/dist-packages/spyderlib/start_app.py", line 12, in <module>
+    from spyderlib.baseconfig import get_conf_path, running_in_mac_app
+  File "/usr/lib/python2.7/dist-packages/spyderlib/baseconfig.py", line 188, in <module>
+    from spyderlib.otherplugins import PLUGIN_PATH
+  File "/usr/lib/python2.7/dist-packages/spyderlib/otherplugins.py", line 17, in <module>
+    from spyderlib.utils import programs
+  File "/usr/lib/python2.7/dist-packages/spyderlib/utils/programs.py", line 29, in <module>
+    username = encoding.to_unicode_from_fs(os.environ.get('USER'))
+  File "/usr/lib/python2.7/dist-packages/spyderlib/utils/encoding.py", line 62, in to_unicode_from_fs
+    string = to_text_string(string.toUtf8(), 'utf-8')
+AttributeError: 'NoneType' object has no attribute 'toUtf8'
+```
 
+Now Spyder should be able to launch as developer and everything should work!
