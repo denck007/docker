@@ -1,0 +1,37 @@
+# This is a kind of isolated way to access the x server the machine running the container
+# Not portable as some info about the user is stored in the container
+# kind of a pain to set up and run
+#
+# To build:
+#	docker build -t docker-ubuntu-x11 -f docker-ubuntu16-x11 .
+#
+# To build need to set up a the auth file for the server, run the following on the host machine:
+#	XSOCK=/tmp/.X11-unix
+#	XAUTH=/tmp/.docker.xauth
+#	touch $XAUTH
+#	xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
+#
+# To run:
+#	docker run -it --volume=$XSOCK:$XSOCK:rw --volume=$XAUTH:$XAUTH:rw --env="XAUTHORITY=${XAUTH}" --env="DISPLAY" --user="developer" -v /home/developer:/home docker-ubuntu-x11
+#
+# Kind of need a bash file to boot it all up
+
+
+
+FROM ubuntu:16.04
+
+RUN apt-get update && apt-get install -y python-opencv
+
+# Replace 1000 with your user / group id
+RUN export uid=1000 gid=1000 && \
+    mkdir -p /home/developer && \
+    mkdir -p /etc/sudoers.d && \
+    echo "developer:x:${uid}:${gid}:Developer,,,:/home/developer:/bin/bash" >> /etc/passwd && \
+    echo "developer:x:${uid}:" >> /etc/group && \
+    echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer && \
+    chmod 0440 /etc/sudoers.d/developer && \
+    chown ${uid}:${gid} -R /home/developer
+
+ENV HOME /home/developer
+USER developer
+
