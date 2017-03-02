@@ -17,6 +17,11 @@ nvidia-docker makes it nice and easy for caffe to work on the gpu, highly recomm
 
 
 ## Getting openCV to work
+How I figured this out:
+* [ros.org](http://wiki.ros.org/docker/Tutorials/GUI)
+* [Fábio Rehm](http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/)
+* [mviereck](http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/#comment-3004865602)
+
 ### Setting up the docker file
 OpenCV is still a pain to compile because it has so many options. Luckly for most of my stuff, I don't need anything more advanced or faster than what existed in 2.4.9, which is what is in the ubuntu repo. So just build with that.
 * In the docker file make sure that you have `apt-get install libopencv-dev python-opencv`
@@ -77,14 +82,17 @@ apt-get install -y spyder
 spyder & # start it headless
 ```
 This will likely shoot out an error along the lines of:
-1. The first is caused by bad memory access, and can be fixed by adding the arg `--ipc=host` to the docker command to start the container
+
+The first is caused by bad memory access, and can be fixed by adding the arg `--ipc=host` to the docker command to start the container
 ```
 X Error: BadShmSeg (invalid shared segment parameter) 128
   Extension:    130 (MIT-SHM)
   Minor opcode: 3 (X_ShmPutImage)
   Resource id:  0x4000014
 ```
-2. The second is caused by there not actually being a user listed when you do `echo $USER`. The really hacky, but simple, way to fix this is by opening the file `/usr/lib/python2.7/dist-packages/spyderlib/utils/programs.py` and chaning line 29 to read `username = encoding.to_unicode_from_fs('developer')`. This means the name listed at the start of all new files is 'developer' now. This likely has to be done as root.
+OR
+
+The second is caused by there not actually being a user listed when you do `echo $USER`. The really hacky, but simple, way to fix this is by opening the file `/usr/lib/python2.7/dist-packages/spyderlib/utils/programs.py` and chaning line 29 to read `username = encoding.to_unicode_from_fs('developer')`. This means the name listed at the start of all new files is 'developer' now. This likely has to be done as root.
 ```
 Traceback (most recent call last):
   File "/usr/bin/spyder", line 2, in <module>
