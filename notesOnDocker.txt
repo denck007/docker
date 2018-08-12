@@ -1,0 +1,61 @@
+To watch smi, will update info every second and not spam terminal:
+	watch -n 1 nvidia-smi
+
+
+lauch caffe with gpu. -v maps folder from host to container, -p maps ports(for jupyter):
+	nvidia-docker run -v /home/neil/dataset:/home -p 8888:8888 -p 6006:6006 -ti bvlc/caffe:gpu
+		-base version of caffe docker image
+	nvidia-docker run -v /home/neil/dataset:/home -p 8888:8888 -p 6006:6006 -ti caffe
+		- base version of caffe image with some additional things like jupyter and apt updated
+		- has opencv 2.4.9 installed from apt
+
+Launch tensor flow gpu:
+	nvidia-docker run -it -v /home/neil/tensorflow:/notebooks/tf -p 8888:8888 -p 6006:6006 tensorflow/tensorflow:latest-gpu
+	nvidia-docker run -it -v /home/neil/tensorflow:/notebooks/tf -v /home/neil/dataset/dataScienceChallenge/:/notebooks/dataset -p 8888:8888 -p 6006:6006 			tensorflow/tensorflow:latest-gpu
+
+
+Launch keras with tf backend:
+	nvidia-docker run -it -v /home/neil/dataset/:/dataset -p 8888:8888 -p 6006:6006  keras
+
+Lauch jupyter so host can access:
+	jupyter notebook --no-browser --ip=*
+
+Make packages availible in docker, you need to build the cache, ie make apt-get work:
+	apt-get update
+
+
+Created a caffe docker image called 'caffe', replace bvlc/caffe:gpu with caffe.
+	Has jupyter set up, has nano
+	save using: docker commit <CONTAINER ID> <name, caffe in this case>
+
+
+find container info:
+	docker -ps # for current containers
+	docker -ps -a # for full history of containers
+	docker rm <CONTAINER ID> # delete the container
+find image info:
+	docker image # list all local images
+	docker image -q list the id of the local images
+	docker rmi <image id> # delete the local image
+	docker rmi $(docker images -f "dangling=true" -q) # get the untagged images and delete them
+
+Attach to running container:
+	docker exec -it <CONTAINER ID> bash
+
+Remove old containers:
+	docker ps --filter "status=exited" | grep 'weeks ago' | awk '{print $1}' | xargs --no-run-if-empty docker rm
+
+
+# To install software
+# Kinda difficult because need to be root and have to install sudo:
+# launch docker with, will login as root to a terminal: 
+	nvidia-docker run -it -v /home/neil/dataset/:/dataset -p 8888:8888 -p 6006:6006 -user='root' keras bash
+# Update apt to get everything refreshed:
+	apt-get update
+# Install sudo:
+	apt-get install sudo
+# Install software:
+	sudo apt-get install <software name> 
+# dont forget to commit the container. Note that you may have to exit the container, commit it, then relaunch it with:
+	nvidia-docker run -it -v /home/neil/dataset/:/dataset -p 8888:8888 -p 6006:6006 --user='keras' keras jupyter notebook --port 8888 --ip=0.0.0.0
+# Otherwise you will autologin as root to bash.
