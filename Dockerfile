@@ -58,30 +58,25 @@ RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
 #need to add tqdm from conda here
 
 #TINI
-RUN apt-get install -y curl grep sed dpkg && \
-    TINI_VERSION=`curl https://github.com/krallin/tini/releases/latest | grep -o "/v.*\"" | sed 's:^..\(.*\).$:\1:'` && \
-    curl -L "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini_${TINI_VERSION}.deb" > tini.deb && \
-    dpkg -i tini.deb && \
-    rm tini.deb && \
-    apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+#RUN apt-get install -y curl grep sed dpkg && \
+#    TINI_VERSION=`curl https://github.com/krallin/tini/releases/latest | grep -o "/v.*\"" | sed 's:^..\(.*\).$:\1:'` && \
+#    curl -L "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini_${TINI_VERSION}.deb" > tini.deb && \
+#    dpkg -i tini.deb && \
+#    rm tini.deb && \
+#    apt-get clean \
+#    && rm -rf /var/lib/apt/lists/*
 
-RUN echo $PATH
 ENV PATH /opt/conda/bin:$PATH
-RUN echo $PATH
 RUN conda install line_profiler
-RUN echo $PATH
 RUN conda install pytorch torchvision cuda90 -c pytorch
-RUN echo $PATH
 
 # openCV
 # added examples on 20180120
 RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/3.4.2.zip && \
 	unzip opencv.zip && \
 	wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/3.4.2.zip && \
-	unzip opencv_contrib.zip 
-
-RUN cd opencv-3.4.2/ && \
+	unzip opencv_contrib.zip && \
+	cd opencv-3.4.2/ && \
 	mkdir build && \
 	cd build && \
 	cmake -D CMAKE_BUILD_TYPE=RELEASE \
@@ -98,14 +93,10 @@ RUN cd opencv-3.4.2/ && \
             -DPYTHON_PACKAGES_PATH=$(python3.6 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())") && \
 	make -j8 && \
 	make install && \
+	rm -R /opencv* && \
 	ldconfig && \
 	cd / && \
-	rm opencv.zip && \
-	rm opencv_contrib.zip
-
-# add xmp support, added 20180113
-# not tested yet
-RUN wget -O python-xmp-toolkit-2.0.1.zip https://github.com/python-xmp-toolkit/python-xmp-toolkit/archive/v2.0.1.zip && \
+	wget -O python-xmp-toolkit-2.0.1.zip https://github.com/python-xmp-toolkit/python-xmp-toolkit/archive/v2.0.1.zip && \
 	unzip python-xmp-toolkit-2.0.1.zip && \
 	cd python-xmp-toolkit-2.0.1 && \
 	python setup.py install && \ 
@@ -114,8 +105,8 @@ RUN wget -O python-xmp-toolkit-2.0.1.zip https://github.com/python-xmp-toolkit/p
 	rm -rf python-xmp-toolkit-2.0.1.zip
 
 # 20180224 update for yolo2-pytorch 
-RUN conda install -c conda-forge humanize inflection tinydb && \
-	conda install -c anaconda graphviz 
+#RUN conda install -c conda-forge humanize inflection tinydb && \
+#	conda install -c anaconda graphviz 
 
 # Clean up installation
 RUN apt-get clean && \
